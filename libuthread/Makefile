@@ -1,8 +1,9 @@
 # Target library
 lib := libuthread.a
-
-CFLAGS := -Wall -Wextra -Werror
-objs := queue.o
+CC := gcc
+CFLAGS := 
+objs := context.o preempt.o queue.o sem.o uthread.o
+deps := private.h
 
 all: $(lib)
 
@@ -12,7 +13,7 @@ $(lib): $(objs)
 	ar rcs $@ $^
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $< 
 
 clean:
 	rm -f $(lib) $(objs)
