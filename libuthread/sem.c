@@ -7,6 +7,7 @@
 
 struct semaphore {
 	/* TODO Phase 3 */
+	
 };
 
 sem_t sem_create(size_t count)
