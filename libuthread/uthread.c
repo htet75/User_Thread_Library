@@ -10,14 +10,17 @@
 #include "queue.h"
 #include "uthread.h"
 
+/* Main queue to keep track of all threads in a Round Robin Scheduling */
 queue_t thread_queue;
-struct uthread_tcb *current_thread;
+struct uthread_tcb *current_thread; // Pointer to keep track of the currently executing thread
 
+/* Different states the processor can be in */
 enum uthread_state_t
 {
 	READY,
 	RUNNING,
-	EXITED
+	EXITED,
+	BLOCKED
 };
 
 struct uthread_tcb {
@@ -48,12 +51,13 @@ void uthread_yield(void)
 	}
 	
 	// Prepare new thread to run
-	assert(queue_dequeue(thread_queue, (void**)&new_thread) == 0); // Check if fialed to get element from queue
+	assert(queue_dequeue(thread_queue, (void**)&new_thread) == 0); // Check if failed to get element from queue (since it has no return checking)
 	new_thread->state = RUNNING;
 	current_thread = new_thread; // Update thread
 
 	uthread_ctx_switch(saved_thread->context, new_thread->context); // Switch context with another context
 
+	/* Free up any thread that is already terminated */
 	if (saved_thread->state == EXITED)
 	{
 		free(saved_thread->context);
@@ -75,19 +79,22 @@ void uthread_exit(void)
 	uthread_yield(); // Never returns so yield will remove the thread
 }
 
-int uthread_create(uthread_func_t func, void *arg)
+struct uthread_tcb *helper_uthread_creator()
 {
+	/* Creates some elements of a thread that don't require any input
+	   Returns a NULL if any function fails
+	 */
 	/* Creates a thread by initializing the TCB */
 	struct uthread_tcb *uthread = (struct uthread_tcb *)malloc(sizeof(struct uthread_tcb));
 	if (uthread == NULL)
 		/* Failed to malloc tcb*/
-		return -1;
+		return NULL;
 	
 	/* Allocate context for thread */
 	uthread->context = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 	if (uthread->context == NULL)
 		/* Failed to malloc context */
-		return -1;
+		return NULL;
 
 	uthread->state = READY;
 	
@@ -95,7 +102,17 @@ int uthread_create(uthread_func_t func, void *arg)
 	uthread->stack = uthread_ctx_alloc_stack();
 	if (uthread->stack == NULL)
 		/* Failed to get stack pointer */
-		return -1; 
+		return NULL;
+
+	return uthread;
+}
+
+int uthread_create(uthread_func_t func, void *arg)
+{
+	/* Creates a new thread*/
+	struct uthread_tcb *uthread = helper_uthread_creator();
+	if (uthread == NULL)
+		return -1;
 
 	if (uthread_ctx_init(uthread->context, uthread->stack, func, arg) == -1)
 		/* Context creation failed */
@@ -116,30 +133,18 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	}
 
 	/* Main idle thread */
-	struct uthread_tcb* main_idle_thread = (struct uthread_tcb*)malloc(sizeof(struct uthread_tcb));
+	struct uthread_tcb* main_idle_thread = helper_uthread_creator();
 	if (main_idle_thread == NULL)
 		/* Unable to create thread */
 		return -1;
 	
-	/* Allocate context for main idle thread */
-	main_idle_thread->context = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
-	if (main_idle_thread->context == NULL)
-		/* Unable to malloc context */
-		return -1;
-
 	main_idle_thread->state = RUNNING;
-
-	/* Allocate stack for main idle thread */
-	main_idle_thread->stack = uthread_ctx_alloc_stack();
-	if (main_idle_thread->stack == NULL)
-		/* Failed to get stack pointer */
-		return -1; 
 
 	if (uthread_create(func, arg) == -1)
 		/* Create the first thread */
 		return -1;
 
-	current_thread = main_idle_thread; // Set current thread
+	current_thread = main_idle_thread; // Set current thread to be the first idle thread
 
 	while (queue_length(thread_queue) != 0)
 		/* Idle loop while the queue is not empty */
@@ -150,11 +155,15 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 
 void uthread_block(void)
 {
-	/* TODO Phase 3 */
+	/* Block current thread and yield for another thread in queue */
+	uthread_current()->state = BLOCKED;
+	uthread_yield();
 }
 
 void uthread_unblock(struct uthread_tcb *uthread)
 {
-	/* TODO Phase 3 */
+	/* Unblock the thread and push it back into the ready queue */
+	uthread->state = READY;
+	queue_enqueue(thread_queue, uthread);
 }
 
