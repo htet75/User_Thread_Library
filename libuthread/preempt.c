@@ -37,9 +37,9 @@ void preempt_disable(void)
 
 void preempt_enable(void)
 {
-	sigset_t alarm;
+	sigset_t signal;
 	/*Initialize the signal mask*/
-    sigemptyset(&slgnal);
+    sigemptyset(&signal);
     sigaddset(&signal, SIGVTALRM);
 	/*unblock SIGNTALRM*/
     sigprocmask(SIG_UNBLOCK, &signal, NULL);
@@ -48,7 +48,7 @@ void preempt_enable(void)
 void preempt_start(bool preempt)
 {
 	/* TODO Phase 4 */
-	struct signal action;
+	struct sigaction action;
 	struct itimerval timer; 
 
 	/* Signal handler for SIGVTALRM */
