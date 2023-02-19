@@ -53,16 +53,24 @@ void preempt_start(bool preempt)
 
 	/* Signal handler for SIGVTALRM */
 	action.sa_handler = timer_interrupt_handler;
-    sigemptyset(&action.sa_mask);
-    action.sa_flags = 0;
-    sigaction(SIGVTALRM, &action, &previous_action);
+	sigemptyset(&action.sa_mask);
+	action.sa_flags = 0;
+	sigaction(SIGVTALRM, &action, &previous_action);
 
 	/* Timer configuration to fire an alarm a hundred times per second */
 	timer.it_value.tv_sec = 0;
-    timer.it_value.tv_usec = 1000000 / HZ;
-    timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = 1000000 / HZ;
-    setitimer(ITIMER_VIRTUAL, &timer, &previous_timer);
+	timer.it_value.tv_usec = 1000000 / HZ;
+	timer.it_interval.tv_sec = 0;
+	timer.it_interval.tv_usec = 1000000 / HZ;
+	setitimer(ITIMER_VIRTUAL, &timer, &previous_timer);
+
+	if(preempt)
+	{
+		preempt_enable();
+	} else {
+		preempt_disable();
+	}
+
 }
 
 void preempt_stop(void)
