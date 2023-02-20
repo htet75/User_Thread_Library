@@ -50,31 +50,35 @@ void preempt_enable(void)
 
 void preempt_start(bool preempt)
 {
-	/* Declare necessary signal/timer objects */
-	struct sigaction action;
-	struct itimerval timer; 
-
-	/* Signal handler for SIGVTALRM */
-	sigemptyset(&action.sa_mask);
-	action.sa_handler = timer_interrupt_handler;
-	action.sa_flags = SA_RESTART; // In case preemption happens on a read/write etc.
-	sigaction(SIGVTALRM, &action, &previous_action);
-
-	/* Timer configuration to fire an alarm at 100 Hz */
-	timer.it_value.tv_sec = 0;
-	timer.it_value.tv_usec = USEC / HZ;
-	timer.it_interval.tv_sec = 0;
-	timer.it_interval.tv_usec = USEC / HZ;
-
 	/* To prevent the timer from interrupting as soon as it goes off */
 	preempt_disable();
 
-	/* Create virtual timer and store original timer into previous timer */
-	setitimer(ITIMER_VIRTUAL, &timer, &previous_timer);
-
 	/* Enable preemption if asked */
 	if(preempt)
+	{
+		/* Declare necessary signal/timer objects */
+		struct sigaction action;
+		struct itimerval timer; 
+
+		/* Signal handler for SIGVTALRM */
+		sigemptyset(&action.sa_mask);
+		action.sa_handler = timer_interrupt_handler;
+		action.sa_flags = SA_RESTART; // In case preemption happens on a read/write etc.
+		sigaction(SIGVTALRM, &action, &previous_action);
+
+		/* Timer configuration to fire an alarm at 100 Hz */
+		timer.it_value.tv_sec = 0;
+		timer.it_value.tv_usec = USEC / HZ;
+		timer.it_interval.tv_sec = 0;
+		timer.it_interval.tv_usec = USEC / HZ;
+
+		/* Create virtual timer and store original timer into previous timer */
+		setitimer(ITIMER_VIRTUAL, &timer, &previous_timer);
+
+		/* Enable preempt */
 		preempt_enable();
+	}
+
 }
 
 /* Restores the previously stored values for the sigaction and previous timer */
