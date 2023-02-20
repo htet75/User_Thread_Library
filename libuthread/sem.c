@@ -13,6 +13,7 @@ struct semaphore {
 
 sem_t sem_create(size_t count)
 {
+	preempt_disable();
 	/* Creating a semaphore object */
 	sem_t new_sem = (sem_t)malloc(sizeof(struct semaphore));
 	if (new_sem == NULL)
@@ -21,12 +22,14 @@ sem_t sem_create(size_t count)
 	/* Initialize variables */
 	new_sem->internal_count = count;
 	new_sem->waiting_list = queue_create();
+	preempt_enable();
 
 	return new_sem;
 }
 
 int sem_destroy(sem_t sem)
 {
+	preempt_disable();
 	/* Remove the semaphore */
 	if (sem == NULL || queue_destroy(sem->waiting_list) == -1)
 		/* Check if semaphore is a NULL pointer or it still has queues blocking */
@@ -34,6 +37,7 @@ int sem_destroy(sem_t sem)
 
 	free(sem);
 
+	preempt_enable();
 	return 0;
 }
 
@@ -51,15 +55,18 @@ int sem_down(sem_t sem)
 	else
 	{
 		struct uthread_tcb *waitlisted_thread = uthread_current();
+		preempt_disable();
 		queue_enqueue(sem->waiting_list, waitlisted_thread);
+		preempt_enable();
 		uthread_block();
 	}
-
+	
 	return 0;
 }
 
 int sem_up(sem_t sem)
 {
+	preempt_disable();
 	/* Release the semaphore */
 	if (sem == NULL)
 		/* Check for NULL pointer */
@@ -79,6 +86,7 @@ int sem_up(sem_t sem)
 		uthread_unblock(blocked_thread);
 	}
 
+	preempt_enable();
 	return 0;
 }
 

@@ -43,15 +43,20 @@ void uthread_yield(void)
 	struct uthread_tcb *new_thread;
 
 	/* Prepare save thread to switch if not terminated */
+	
 	if (saved_thread->state == RUNNING)
 	{
 		/* Check if the thread is running to stop it */
 		saved_thread->state = READY; // Prepare thread to be switched
+		preempt_disable();
 		queue_enqueue(thread_queue, saved_thread); // Add the original thread into queue
+		preempt_enable();
 	}
 	
 	// Prepare new thread to run
+	preempt_disable();
 	assert(queue_dequeue(thread_queue, (void**)&new_thread) == 0); // Check if failed to get element from queue (since it has no return checking)
+	preempt_enable();
 	new_thread->state = RUNNING;
 	current_thread = new_thread; // Update thread
 
@@ -117,40 +122,48 @@ int uthread_create(uthread_func_t func, void *arg)
 	if (uthread_ctx_init(uthread->context, uthread->stack, func, arg) == -1)
 		/* Context creation failed */
 		return -1;
-
+	preempt_disable();
 	queue_enqueue(thread_queue, (void*)uthread); // Add new thread to the queue
+	preempt_enable();
+
 	return 0;
 }
 
 int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
-	/* First function to initialize the uthread library and create a thread */
-	thread_queue = queue_create();
-	if (thread_queue == NULL)
-	{
-		/* Unable to create queue */
-		return -1;
-	}
+    /* First function to initialize the uthread library and create a thread */
+    thread_queue = queue_create();
+    if (thread_queue == NULL)
+    {
+        /* Unable to create queue */
+        return -1;
+    }
 
-	/* Main idle thread */
-	struct uthread_tcb* main_idle_thread = helper_uthread_creator();
-	if (main_idle_thread == NULL)
-		/* Unable to create thread */
-		return -1;
-	
-	main_idle_thread->state = RUNNING;
+    /* Main idle thread */
+    struct uthread_tcb* main_idle_thread = helper_uthread_creator();
+    if (main_idle_thread == NULL)
+        /* Unable to create thread */
+        return -1;
+    
+    main_idle_thread->state = RUNNING;
 
-	if (uthread_create(func, arg) == -1)
-		/* Create the first thread */
-		return -1;
+    if (uthread_create(func, arg) == -1)
+        /* Create the first thread */
+        return -1;
 
-	current_thread = main_idle_thread; // Set current thread to be the first idle thread
+    current_thread = main_idle_thread; // Set current thread to be the first idle thread
+    
+    preempt_start(preempt);
+	// while(1);
+    while (queue_length(thread_queue) != 0)
+    {
+        /* Idle loop while the queue is not empty */
+        uthread_yield();
+    }
 
-	while (queue_length(thread_queue) != 0)
-		/* Idle loop while the queue is not empty */
-		uthread_yield();
+    preempt_stop();
 
-	return 0;
+    return 0;
 }
 
 void uthread_block(void)
@@ -164,6 +177,8 @@ void uthread_unblock(struct uthread_tcb *uthread)
 {
 	/* Unblock the thread and push it back into the ready queue */
 	uthread->state = READY;
+	preempt_disable();
 	queue_enqueue(thread_queue, uthread);
+	preempt_enable();
 }
 
