@@ -1,7 +1,7 @@
 # Target library
 lib := libuthread.a
 CC := gcc
-CFLAGS := 
+CFLAGS := -g -Wall -Werror
 objs := context.o preempt.o queue.o sem.o uthread.o
 deps := private.h
 
