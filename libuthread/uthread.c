@@ -46,7 +46,7 @@ void uthread_yield(void)
 
 	/* Prepare save thread to switch if not terminated */
 	
-	if (saved_thread->state == RUNNING)
+	if (saved_thread && saved_thread->state == RUNNING)
 	{
 		/* Check if the thread is running to stop it */
 		saved_thread->state = READY; // Prepare thread to be switched
@@ -65,7 +65,7 @@ void uthread_yield(void)
 	uthread_ctx_switch(saved_thread->context, new_thread->context); // Switch context with another context
 
 	/* Free up any thread that is already terminated */
-	if (saved_thread->state == ZOMBIE)
+	if (saved_thread && saved_thread->state == ZOMBIE)
 	{
 		uthread_ctx_destroy_stack(saved_thread->stack);
 		free(saved_thread->context);
