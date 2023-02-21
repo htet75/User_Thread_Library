@@ -176,3 +176,11 @@ thread 3 will first print from 0 to 4 due to `preempt_disable`, then afterwards,
 each thread will be yielding after each iteration. Our program demonstrate the 
 effect of preemption on the behavior of the threads once with preemption enabled
 and once with preemption disabled. 
+
+## Reference
+1. https://stackoverflow.com/questions/6359496/on-the-frequency-of-sighandler
+2. https://www.gnu.org/software/libc/manual/2.36/html_mono/libc.html#Signal-Actions
+3. https://www.gnu.org/software/libc/manual/2.36/html_mono/libc.html#Setting-an-Alarm
+4. https://support.sas.com/documentation/onlinedoc/sasc/doc700/html/lr1/zlocking.htm
+5. https://pubs.opengroup.org/onlinepubs/7908799/xsh/sem_post.html
+6. https://man7.org/linux/man-pages/man7/sem_overview.7.html
