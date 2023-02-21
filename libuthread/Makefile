@@ -7,7 +7,12 @@ deps := private.h
 
 all: $(lib)
 
-## TODO: Phase 1
+## Debug flag
+ifneq ($(D),1)
+CFLAGS	+= -O2
+else
+CFLAGS	+= -g
+endif
 
 $(lib): $(objs)
 	ar rcs $@ $^

@@ -22,8 +22,6 @@ void thread3()
             time(&start);
             count++;
         }
-        // uthread_yield();
-        // sleep(1);
     }
     preempt_enable();
     while(count < max_count*2)
@@ -52,8 +50,6 @@ void thread2()
             time(&start);
             count++;
         }
-        // uthread_yield();
-        // sleep(1);
     }
 }
 
@@ -71,8 +67,6 @@ void thread1()
             time(&start);
             count++;
         }
-        // uthread_yield();
-        // sleep(1);
     }
 }
 

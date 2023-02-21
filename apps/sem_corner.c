@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "sem.h"
+
+#include <sem.h>
 #include <uthread.h>
 
 sem_t sem;
@@ -10,9 +11,8 @@ void threadC() {
     sem_down(sem);
 
     /* Simulate some work that requires the semaphore */
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++)
         printf("Thread C is doing some work...\n");
-    }
 
     printf("Thread C is releasing the semaphore\n");
     sem_up(sem);
@@ -28,9 +28,8 @@ void threadA() {
     sem_down(sem);
 
     /* Simulate some work that requires the semaphore */
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++)
         printf("Thread A is doing some work...\n");
-    }
 
     printf("Thread A is releasing the semaphore\n");
     sem_up(sem);

@@ -1,5 +1,5 @@
-#include "uthread.h"
 #include <stdio.h>
+#include <uthread.h>
 
 void thread_func3(void *arg) {
     int thread_num = *(int *)arg;

@@ -1,8 +1,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "queue.h"
 #include "sem.h"
+#include "queue.h"
 #include "private.h"
 
 struct semaphore {
@@ -48,7 +48,6 @@ int sem_down(sem_t sem)
 	if (sem == NULL)
 		return -1;
 
-	
 	/* Decrement the internal count in the semaphore and
 	 * if there is no more possible resources, remove the
 	 * add the semaphores to the queue
