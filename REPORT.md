@@ -169,9 +169,10 @@ is called, and simplies yields whatever is the current running thread.
 We created our own program which would have threads that run a loop that takes a
 significant amount of time printing whatever thread it is in. For us to visually
 inspect preemption, we see that the first thread isn't able to finish its loop
-before another thread prints out their input. If preemption wasn't enabled, the
-thread would print out 10 rows of "From Thread 1" and then 10 rows of "From
-Thread 2", and then 10 rows of "From Thread 3". Instead we see that the threads
-themselves aren't able to fully execute despite having no yields, instead
-printing out "From Thread 1" and then moving to potentially "From Thread 2" or
-"From Thread 3".
+before another thread prints out their input. If preemption was disabled,
+thread 1 would print out iteration from 0 to 4 and then thread 2 would do the 
+same. Aftereward, thread 3 would print from 0 to 9. If preemption was enabled,
+thread 3 will first print from 0 to 4 due to `preempt_disable`, then afterwards, 
+each thread will be yielding after each iteration. Our program demonstrate the 
+effect of preemption on the behavior of the threads once with preemption enabled
+and once with preemption disabled. 
