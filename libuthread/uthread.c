@@ -12,14 +12,16 @@
 
 /* Main queue to keep track of all threads in a Round Robin Scheduling */
 queue_t thread_queue;
-struct uthread_tcb *current_thread; // Pointer to keep track of the currently executing thread
+
+/* Pointer to keep track of the currently executing thread */
+struct uthread_tcb *current_thread; 
 
 /* Different states the processor can be in */
 enum uthread_state_t
 {
 	READY,
 	RUNNING,
-	EXITED,
+	ZOMBIE,
 	BLOCKED
 };
 
@@ -63,7 +65,7 @@ void uthread_yield(void)
 	uthread_ctx_switch(saved_thread->context, new_thread->context); // Switch context with another context
 
 	/* Free up any thread that is already terminated */
-	if (saved_thread->state == EXITED)
+	if (saved_thread->state == ZOMBIE)
 	{
 		free(saved_thread->context);
 		free(saved_thread);
@@ -77,7 +79,7 @@ void uthread_exit(void)
 	struct uthread_tcb *exiting_thread = uthread_current();
 
 	/* Free memory of thread information */
-	exiting_thread->state = EXITED;
+	exiting_thread->state = ZOMBIE;
 	uthread_ctx_destroy_stack(exiting_thread->stack);
 	
 	/* Pass to yield to handle switching to next thread */
