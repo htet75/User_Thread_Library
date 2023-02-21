@@ -1,8 +1,16 @@
 # Target programs
 programs := \
+	queue_tester.x \
 	queue_tester_example.x \
+	sem_buffer.x \
+	sem_corner.x \
+	sem_count.x \
+	sem_prime.x \
+	sem_simple.x \
+	test_preempt.x \
+	test_uthread.x \
 	uthread_hello.x \
-	uthread_yield.x
+	uthread_yield.x 
 
 # User-level thread library
 UTHREADLIB := libuthread
