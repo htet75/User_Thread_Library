@@ -67,6 +67,7 @@ void uthread_yield(void)
 	/* Free up any thread that is already terminated */
 	if (saved_thread->state == ZOMBIE)
 	{
+		uthread_ctx_destroy_stack(saved_thread->stack);
 		free(saved_thread->context);
 		free(saved_thread);
 		saved_thread = NULL;
@@ -81,6 +82,9 @@ void uthread_exit(void)
 	/* Free memory of thread information */
 	exiting_thread->state = ZOMBIE;
 	uthread_ctx_destroy_stack(exiting_thread->stack);
+
+	/* Deallocating TCB memory */
+	// free(exiting_thread);
 	
 	/* Pass to yield to handle switching to next thread */
 	uthread_yield(); // Never returns so yield will remove the thread
@@ -100,16 +104,24 @@ struct uthread_tcb *helper_uthread_creator()
 	/* Allocate context for thread */
 	uthread->context = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 	if (uthread->context == NULL)
+	{
 		/* Failed to malloc context */
+		free(uthread);
 		return NULL;
+	}
+
 
 	uthread->state = READY;
 	
 	/* Allocate Stack for thread*/
 	uthread->stack = uthread_ctx_alloc_stack();
 	if (uthread->stack == NULL)
+	{
 		/* Failed to get stack pointer */
+		free(uthread->context);
+		free(uthread);
 		return NULL;
+	}
 
 	return uthread;
 }
