@@ -40,7 +40,8 @@ Intial testing was done using the queue_tester_example.x found in apps.
 Afterwards, examples were programmed from the given prompt to ensure proper
 behavior to the given specifications. Afterwards, error testing the edge cases
 with the queue was done alongside our own creations of example apps using the
-queue. 
+queue. Additionally, **queue_tester.x** also tests the functionality of all the 
+functions. 
 
 ## User Thread Implementation
 The goal was to make a thread library that used Round Robin Scheduling in order
@@ -86,8 +87,12 @@ that it can begin execution again.
 
 ### User Thread Testing
 The user thread were mainly tested using the **uthread_(hello/yield).x** apps.
-Custom apps were also created to further test the round_robin behavior of the
-app.
+Custom apps, **test_uthread.x** was also created to test the user thread. 
+The apps creates three threads and executes them in round-robin fashion using 
+cooperative scheduling. Each thread executes a loop of three iterations and 
+yields the CPU to the next thread in line after each iteration. The program also
+prints messages from each thread and the message includes thread number, 
+iteration number, beginning of its execution and its exiting. 
 
 ## Semaphore Implementation
 Semaphores are useful to regulate access to common resources when using multiple
@@ -117,13 +122,17 @@ unblocks that given thread to be used later on.
 ### Semaphore testing
 Initial testing was done using the **sem_(simple/count/buffer/prime).x** apps
 alongside small testing cases to ensure the internal count and queues associated
-with the semaphores were properly functioning.
+with the semaphores were properly functioning. Furthremore, **sem_corner.x** apps 
+uses a shared semaphore to test multithreading. ThreadA first grabbed the semaphore
+at a count of 0 and threadB released the semaphore, then threadC grabbed the
+semaphore. However, threadA receives the semaphore first since it is in the 
+waiting list and then threadC receives the semaphore afterwards. 
 
 ## Preemption Implementation
 Preemption allows our library to take control of any thread without requiring
 the user to yield. This is mainly done by leveraging the **SIGVTALRM** signal
 and setting up an internal timer to trigger the signal at a rate of 100 Hz.
-Everything the signal is called, the currently running thread is yielded to
+Everytime the signal is called, the currently running thread is yielded to
 allow for the next oldest thread in the `thread_queue` to run. The library will
 store the previous action and timers of the associated signal before running and
 will restore the configurations after the library exits.
