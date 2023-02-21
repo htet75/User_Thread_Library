@@ -43,11 +43,16 @@ int sem_destroy(sem_t sem)
 
 int sem_down(sem_t sem)
 {
-	/* Decrement the internal count in the semaphore */
+	preempt_disable();
+	/* Check if there is a NULL pointer */
 	if (sem == NULL)
 		return -1;
 
-	/* Check if there are any  */
+	
+	/* Decrement the internal count in the semaphore and
+	 * if there is no more possible resources, remove the
+	 * add the semaphores to the queue
+	 */
 	if (sem->internal_count > 0)
 	{
 		sem->internal_count--;
@@ -55,11 +60,11 @@ int sem_down(sem_t sem)
 	else
 	{
 		struct uthread_tcb *waitlisted_thread = uthread_current();
-		preempt_disable();
+		
 		queue_enqueue(sem->waiting_list, waitlisted_thread);
-		preempt_enable();
 		uthread_block();
 	}
+	preempt_enable();
 	
 	return 0;
 }
