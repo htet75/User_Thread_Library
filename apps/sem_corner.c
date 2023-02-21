@@ -6,8 +6,8 @@
 sem_t sem;
 
 void threadC() {
+    printf("Thread C grabbed the semaphore!\n");
     sem_down(sem);
-    printf("Thread C got the semaphore!\n");
 
     /* Simulate some work that requires the semaphore */
     for (int i = 0; i < 5; i++) {
@@ -19,17 +19,17 @@ void threadC() {
 }
 
 void threadB() {
-    sem_up(sem);
-    printf("Thread B released the semaphore\n");
-
     uthread_create(threadC, NULL);
+    printf("Thread B released the semaphore\n");
+    sem_up(sem);
 }
 
 void threadA() {
-    sem_down(sem);
-    printf("Thread A got the semaphore!\n");
-
     uthread_create(threadB, NULL);
+
+    printf("Thread A grabbed the semaphore!\n");
+    sem_down(sem);
+
 
     /* Simulate some work that requires the semaphore */
     for (int i = 0; i < 5; i++) {
