@@ -19,15 +19,17 @@ void threadC() {
 }
 
 void threadB() {
-    uthread_create(threadC, NULL);
     sem_up(sem);
     printf("Thread B released the semaphore\n");
+
+    uthread_create(threadC, NULL);
 }
 
 void threadA() {
-    uthread_create(threadB, NULL);
     sem_down(sem);
     printf("Thread A got the semaphore!\n");
+
+    uthread_create(threadB, NULL);
 
     /* Simulate some work that requires the semaphore */
     for (int i = 0; i < 5; i++) {
