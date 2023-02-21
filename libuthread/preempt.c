@@ -84,6 +84,9 @@ void preempt_start(bool preempt)
 /* Restores the previously stored values for the sigaction and previous timer */
 void preempt_stop(void)
 {
+    /* Stop thread preemption*/
+    preempt_disable();
+    
     /*Restore the previous action for SIGVTALRM*/
     sigaction(SIGVTALRM, &previous_action, NULL);
     
